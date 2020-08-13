@@ -380,7 +380,10 @@ class YoloV3Adapter(Adapter):
         predictions = [[] for _ in range(batch)]
         for blob in self.outputs:
             for b in range(batch):
-                predictions[b].append(raw_outputs[blob][b])
+                pred = raw_outputs[blob][b]
+                pred_shape = pred.shape
+                pred = np.transpose(pred, (1, 2, 0))
+                predictions[b].append(pred.reshape(pred_shape))
 
         box_size = self.coords + 1 + self.classes
         for identifier, prediction, meta in zip(identifiers, predictions, frame_meta):
