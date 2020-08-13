@@ -887,11 +887,13 @@ class DLSDKLauncher(Launcher):
             print_info('\tLayer name: {}'.format(name))
             print_info('\tprecision: {}'.format(input_info.precision))
             print_info('\tshape {}\n'.format(input_info.shape))
+            print_info("\tlayout: {}".format(input_info.layout))
         print_info('Output info')
         for name, output_info in network_outputs.items():
             print_info('\tLayer name: {}'.format(name))
             print_info('\tprecision: {}'.format(output_info.precision))
             print_info('\tshape: {}\n'.format(output_info.shape))
+            print_info("\tlayout: {}".format(output_info.layout))
             self._output_layouts[name] = output_info.layout
 
     def _set_preprocess(self, preprocess):

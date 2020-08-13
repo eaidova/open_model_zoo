@@ -28,6 +28,7 @@ from ..representation import (
     ActionDetectionPrediction, ActionDetectionAnnotation,
     AttributeDetectionPrediction, AttributeDetectionAnnotation
 )
+from ..logging import print_info
 from .metric import Metric, FullDatasetEvaluationMetric, PerImageEvaluationMetric
 
 
@@ -193,6 +194,7 @@ class DetectionMAP(BaseDetectionMetricMixin, FullDatasetEvaluationMetric, PerIma
                 average_precisions.append(ap)
             else:
                 average_precisions.append(np.nan)
+        print_info(average_precisions)
 
         return average_precisions
 
