@@ -201,9 +201,6 @@ class DetectionMAP(BaseDetectionMetricMixin, FullDatasetEvaluationMetric, PerIma
                 average_precisions.append(ap)
             else:
                 average_precisions.append(np.nan)
-        print_info(', '.join(average_precisions))
-
-        print('boxes: ', predictions[0].boxes)
 
         return average_precisions
 
