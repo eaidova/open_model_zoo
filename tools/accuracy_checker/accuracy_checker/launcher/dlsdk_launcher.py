@@ -748,6 +748,7 @@ class DLSDKLauncher(Launcher):
         if self._weights is None and self._model.suffix != '.onnx':
             self._weights = model_path.parent / (model_path.name.split(model_path.suffix)[0] + '.bin')
         self.network = self.read_network(self._model, self._weights)
+        self.network.reshape({'image': [3, 800, 1088]})
         self.original_outputs = self.network.outputs
         outputs = self.config.get('outputs')
         if outputs:
