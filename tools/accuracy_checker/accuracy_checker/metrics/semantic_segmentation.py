@@ -235,19 +235,42 @@ class SegmentationDIAcc(PerImageEvaluationMetric):
         result = np.zeros(shape=self.classes)
 
         annotation_data = annotation.mask
+        #print(np.unique(annotation_data))
         prediction_data = prediction.mask
+        #print(np.unique(prediction_data))
 
-        if prediction_data.shape[0] != 1 and len(prediction_data.shape) != 3:
-            raise RuntimeError("For '{}' metric prediction mask should has only 1 channel, but more found. "
-                               "Specify 'make_argmax' option in adapter or postprocessor."
-                               .format(self.__provider__))
+        unique, counts = np.unique(annotation_data, return_counts=True)
+        print(f'Annotation data: {dict(zip(unique, counts))}')
 
+        unique, counts = np.unique(prediction_data, return_counts=True)
+        print(f'Prediction data: {dict(zip(unique, counts))}')
+        
+
+        # if prediction_data.shape[0] != 1 and len(prediction_data.shape) != 3:
+            # raise RuntimeError("For '{}' metric prediction mask should has only 1 channel, but more found. "
+                               # "Specify 'make_argmax' option in adapter or postprocessor."
+                               # .format(self.__provider__))
+
+        print(prediction.label_order)
         for c, p in enumerate(prediction.label_order, 1):
+            print(c, p)
+            
             annotation_data_ = (annotation_data == c)
             prediction_data_ = (prediction_data == p)
+            print(f'Shape: {annotation_data_.shape}, {prediction_data_.shape}')
+            
+            depth = 80
+            unique, counts = np.unique(annotation_data_[depth], return_counts=True)
+            print(f'Annotation data: {dict(zip(unique, counts))}')
+
+            unique, counts = np.unique(prediction_data_[depth], return_counts=True)
+            print(f'Prediction data: {dict(zip(unique, counts))}')
 
             intersection_count = np.logical_and(annotation_data_, prediction_data_).sum()
-            union_count = annotation_data_.sum() + prediction_data_.sum()
+            intersection_count_debug = np.logical_and(annotation_data_, np.transpose(prediction_data_, (0, 2, 1, 3))).sum()
+            #union_count = annotation_data_.sum() + prediction_data_.sum()
+            union_count = np.logical_or(annotation_data_, prediction_data_).sum()
+            print(intersection_count, intersection_count_debug, union_count)
             if union_count > 0:
                 result[c] += 2.0*intersection_count / union_count
 
@@ -264,6 +287,7 @@ class SegmentationDIAcc(PerImageEvaluationMetric):
         return result
 
     def evaluate(self, annotations, predictions):
+        print(self.overall_metric)
         mean = np.mean(self.overall_metric, axis=0) if self.mean else []
         median = np.median(self.overall_metric, axis=0) if self.median else []
         result = np.concatenate((mean, median))

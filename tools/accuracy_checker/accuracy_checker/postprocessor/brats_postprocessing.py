@@ -133,3 +133,43 @@ class TransformBratsPrediction(Postprocessor):
             target.mask = result
 
         return annotation, prediction
+
+class RemoveBratsPredictionPadding(Postprocessor):
+    __provider__ = 'remove_brats_prediction_padding'
+
+    @classmethod
+    def parameters(cls):
+        parameters = super().parameters()
+        return parameters
+
+    def configure(self):
+        pass
+
+    def process_image(self, annotation, prediction):
+        raise RuntimeError("Since `process_image_with_metadata` is overriden, this method MUST NOT be called")
+
+    def process_image_with_metadata(self, annotation, prediction, image_metadata=None):
+        raw_shape = image_metadata['size_after_cropping']
+        for target in prediction:
+            print(target.mask.shape)
+            
+            target.mask = np.transpose(target.mask, (0, 3, 1, 2)) # (0, 3, 1, 2)
+            padded_shape = target.mask.shape[1:]
+            # Remove padded part
+            pad_before = [(p - r) // 2 for p, r in zip(padded_shape, raw_shape)]
+            pad_after = [-(p - r - b) for p, r, b in zip(padded_shape, raw_shape, pad_before)]
+            result = target.mask[:, pad_before[0]:pad_after[0], pad_before[1]:pad_after[1], pad_before[2]:pad_after[2]]
+            #print(result.shape)
+            label = np.zeros(shape=([target.mask.shape[0]] + list(image_metadata['original_size_of_raw_data'])))
+            crop_box = image_metadata['crop_bbox']
+            label[:, crop_box[0][0]:crop_box[0][1], crop_box[1][0]:crop_box[1][1], crop_box[2][0]:crop_box[2][1]] = result
+            print(label.shape)
+            target.mask = np.transpose(label, (1, 2, 3, 0)) # (1, 2, 3, 0)
+            print(target.mask.shape)
+            target.mask = np.argmax(target.mask, axis=-1)
+            target.mask = np.expand_dims(target.mask, axis=-1)
+
+            # unique, counts = np.unique(target.mask, return_counts=True)
+            # print(f'Postprocessed data from AC: {dict(zip(unique, counts))}')
+
+        return annotation, prediction

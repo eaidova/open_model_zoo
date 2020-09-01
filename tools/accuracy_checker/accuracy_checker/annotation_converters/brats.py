@@ -58,7 +58,8 @@ class BratsConverter(DirectoryBasedAnnotationConverter):
         annotations = []
         for file_in_dir in image_dir.iterdir():
             file_name = file_in_dir.parts[-1]
-            mask = mask_dir / file_name
+            mask_file_name = file_name.rsplit('.', 1)[0] + '.nii.gz'
+            mask = mask_dir / mask_file_name
             if not mask.exists():
                 if not check_content:
                     warnings.warn('Annotation mask for {} does not exists. File will be ignored.'.format(file_name))
@@ -71,11 +72,13 @@ class BratsConverter(DirectoryBasedAnnotationConverter):
                 continue
             annotation = BrainTumorSegmentationAnnotation(
                 str(image_folder / file_name),
-                str(mask_folder / file_name),
+                str(mask_folder / mask_file_name),
                 loader=GTMaskLoader.NIFTI_CHANNELS_FIRST if self.mask_channels_first else GTMaskLoader.NIFTI
             )
 
             annotations.append(annotation)
+        
+        print(self._get_meta())
 
         return ConverterReturn(annotations, self._get_meta(), content_check_errors)
 
