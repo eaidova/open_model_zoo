@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import numpy as np
-import nibabel as nib
 from ..adapters import Adapter
 from ..representation import SegmentationPrediction, BrainTumorSegmentationPrediction
 from ..config import ConfigValidator, BoolField, ListField, NumberField, StringField
@@ -130,33 +129,16 @@ class BrainTumorSegmentationAdapter(Adapter):
         self.segmentation_out = self.get_value_from_config('segmentation_out')
 
     def process(self, raw, identifiers=None, frame_meta=None):
-        def read(filename):
-            nib_image = nib.load(filename)
-            image = np.array(nib_image.dataobj)
-            if len(image.shape) != 4: # Make sure 4D
-                image = np.expand_dims(image, -1)
-            image = np.transpose(image, (2, 1, 0, 3)) # 3,0,1,2
-            return image
-
         result = []
-        if not self.segmentation_out:
-            self.segmentation_out = self.output_blob
         frame_meta = frame_meta or [] * len(identifiers)
         raw_outputs = self._extract_predictions(raw, frame_meta)
+        if not self.segmentation_out:
+            self.segmentation_out = self.output_blob
         for identifier, output in zip(identifiers, raw_outputs[self.segmentation_out]):
             if self.argmax:
                 output = np.argmax(output, axis=0).astype(np.int8)
                 output = np.expand_dims(output, axis=0)
-
-            # DEBUG
-            d = "/localdisk/MLPERF/inference/v0.7/medical_imaging/3d-unet/build/postprocessed_data/"
-            postprocessed_filename = d + identifier.split('/')[-1]
-            postprocessed_filename = postprocessed_filename.rsplit('.', 1)[0] + '.nii.gz'
-            output_ = read(postprocessed_filename)
-            unique, counts = np.unique(output_, return_counts=True)
-            # print(f'Postprocessed data from file: {dict(zip(unique, counts))}')
-
-            result.append(BrainTumorSegmentationPrediction(identifier, [output, output_], self.label_order))
+            result.append(BrainTumorSegmentationPrediction(identifier, output, self.label_order))
 
         return result
 

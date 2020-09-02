@@ -151,54 +151,21 @@ class RemoveBratsPredictionPadding(Postprocessor):
     def process_image_with_metadata(self, annotation, prediction, image_metadata=None):
         raw_shape = image_metadata['size_after_cropping']
         for target in prediction:
-            postprocessed_mask = target.mask[1]
-            target.mask = target.mask[0]
-            
 
-            # print(f'postprocessed from file shape: {postprocessed_mask.shape}')
-            # print(f'prediction shape before post-processing: {target.mask.shape}')
-
-            
-            # remove padding
-            padded_shape = target.mask.shape[1:] # [224, 224, 160]
-            # print(f'padded shape: {padded_shape}')
-            # print(f'raw shape: {raw_shape}')
-            
-            # # Remove padded part
+            # Remove padding
+            padded_shape = target.mask.shape[1:]
             pad_before = [(p - r) // 2 for p, r in zip(padded_shape, raw_shape)]
             pad_after = [-(p - r - b) for p, r, b in zip(padded_shape, raw_shape, pad_before)]
             result = target.mask[:, pad_before[0]:pad_after[0], pad_before[1]:pad_after[1], pad_before[2]:pad_after[2]]
-            # print(f'result shape after remove padding: {result.shape}')
-            
-            label = label = np.zeros(shape=([target.mask.shape[0]] + list(image_metadata['original_size_of_raw_data'])))
-            # print(f'label shape: {label.shape}')
-            
-            crop_box = image_metadata['crop_bbox']
-            label[:, crop_box[0][0]:crop_box[0][1], crop_box[1][0]:crop_box[1][1], crop_box[2][0]:crop_box[2][1]] = result
+
+            # Undo cropping
+            crop_bbox = image_metadata['crop_bbox']
+            label = np.zeros(shape=([target.mask.shape[0]] + list(image_metadata['original_size_of_raw_data'])))
+            label[:, crop_bbox[0][0]:crop_bbox[0][1], crop_bbox[1][0]:crop_bbox[1][1], crop_bbox[2][0]:crop_bbox[2][1]] = result
             target.mask = label
-            # print(f'prediction shape after undo cropping: {label.shape}')
-            
-            # apply argmax
+
+            # Apply argmax and expand dims with axis=-1 to comply with annotation shape
             target.mask = np.argmax(target.mask, axis=0)
             target.mask = np.expand_dims(target.mask, axis=-1)
 
-            # print(f'prediction shape after argmax: {target.mask.shape}')
-
-            
-            # target.mask = np.transpose(label, (1, 2, 3, 0)) # (1, 2, 3, 0)
-           # # print(target.mask.shape)
-           
-            # target.mask = np.argmax(target.mask, axis=0)
-            # print(f'prediction shape after post-processing: {target.mask.shape}')
-            # print(f'annotation shape: {annotation[0].mask.shape}')
-            
-            #target.mask = np.expand_dims(target.mask, axis=-1)
-
-            # unique, counts = np.unique(target.mask, return_counts=True)
-            # print(f'Postprocessed data from AC: {dict(zip(unique, counts))}')
-        
-        # print("***")
-        # print(f'final annotation shape: {annotation[0].mask.shape}')
-        # print(f'final prediction shape: {prediction[0].mask.shape}')
-        # print("***")
         return annotation, prediction

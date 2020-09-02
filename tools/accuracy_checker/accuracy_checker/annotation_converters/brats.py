@@ -77,8 +77,6 @@ class BratsConverter(DirectoryBasedAnnotationConverter):
             )
 
             annotations.append(annotation)
-        
-        print(self._get_meta())
 
         return ConverterReturn(annotations, self._get_meta(), content_check_errors)
 
