@@ -135,7 +135,7 @@ class BrainTumorSegmentationAdapter(Adapter):
             image = np.array(nib_image.dataobj)
             if len(image.shape) != 4: # Make sure 4D
                 image = np.expand_dims(image, -1)
-            image = np.transpose(image, (3, 0, 1, 2))
+            image = np.transpose(image, (2, 1, 0, 3)) # 3,0,1,2
             return image
 
         result = []
@@ -154,9 +154,9 @@ class BrainTumorSegmentationAdapter(Adapter):
             postprocessed_filename = postprocessed_filename.rsplit('.', 1)[0] + '.nii.gz'
             output_ = read(postprocessed_filename)
             unique, counts = np.unique(output_, return_counts=True)
-            print(f'Postprocessed data from file: {dict(zip(unique, counts))}')
-            
-            result.append(BrainTumorSegmentationPrediction(identifier, output, self.label_order))
+            # print(f'Postprocessed data from file: {dict(zip(unique, counts))}')
+
+            result.append(BrainTumorSegmentationPrediction(identifier, [output, output_], self.label_order))
 
         return result
 

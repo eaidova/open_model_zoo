@@ -240,10 +240,10 @@ class SegmentationDIAcc(PerImageEvaluationMetric):
         #print(np.unique(prediction_data))
 
         unique, counts = np.unique(annotation_data, return_counts=True)
-        print(f'Annotation data: {dict(zip(unique, counts))}')
+        #print(f'Annotation data: {dict(zip(unique, counts))}')
 
         unique, counts = np.unique(prediction_data, return_counts=True)
-        print(f'Prediction data: {dict(zip(unique, counts))}')
+        #print(f'Prediction data: {dict(zip(unique, counts))}')
         
 
         # if prediction_data.shape[0] != 1 and len(prediction_data.shape) != 3:
@@ -251,36 +251,46 @@ class SegmentationDIAcc(PerImageEvaluationMetric):
                                # "Specify 'make_argmax' option in adapter or postprocessor."
                                # .format(self.__provider__))
 
-        print(prediction.label_order)
-        for c, p in enumerate(prediction.label_order, 1):
-            print(c, p)
+        # print(prediction.label_order)
+        # for c, p in enumerate(prediction.label_order, 1):
+            # print(c, p)
             
-            annotation_data_ = (annotation_data == c)
-            prediction_data_ = (prediction_data == p)
-            print(f'Shape: {annotation_data_.shape}, {prediction_data_.shape}')
+            # # annotation_data_ = (annotation_data == c)
+            # # prediction_data_ = (prediction_data == p)
             
-            depth = 80
-            unique, counts = np.unique(annotation_data_[depth], return_counts=True)
-            print(f'Annotation data: {dict(zip(unique, counts))}')
+            # annotation_data_ = (annotation_data > c)
+            # prediction_data_ = (prediction_data > p)
+            # # print(f'Shape: {annotation_data_.shape}, {prediction_data_.shape}')
+            
+            # # depth = 100
+            # # unique, counts = np.unique(annotation_data_[depth], return_counts=True)
+            # # print(f'Annotation data: {dict(zip(unique, counts))}')
 
-            unique, counts = np.unique(prediction_data_[depth], return_counts=True)
-            print(f'Prediction data: {dict(zip(unique, counts))}')
+            # # unique, counts = np.unique(prediction_data_[depth], return_counts=True)
+            # # print(f'Prediction data: {dict(zip(unique, counts))}')
 
+            # intersection_count = np.logical_and(annotation_data_, prediction_data_).sum()
+            # union_count = annotation_data_.sum() + prediction_data_.sum()
+            # #union_count = np.logical_or(annotation_data_, prediction_data_).sum()
+            # print(intersection_count, union_count)
+            # if union_count > 0:
+                # result[c] += 2.0*intersection_count / union_count
+
+        # annotation_data_ = (annotation_data > 0)
+        # prediction_data_ = (prediction_data > 0)
+
+        # intersection_count = np.logical_and(annotation_data_, prediction_data_).sum()
+        # union_count = annotation_data_.sum() + prediction_data_.sum()
+        # if union_count > 0:
+            # result[0] += 2.0 * intersection_count / union_count
+            
+        for c in range(4):
+            annotation_data_ = (annotation_data > c)
+            prediction_data_ = (prediction_data > c)
             intersection_count = np.logical_and(annotation_data_, prediction_data_).sum()
-            intersection_count_debug = np.logical_and(annotation_data_, np.transpose(prediction_data_, (0, 2, 1, 3))).sum()
-            #union_count = annotation_data_.sum() + prediction_data_.sum()
-            union_count = np.logical_or(annotation_data_, prediction_data_).sum()
-            print(intersection_count, intersection_count_debug, union_count)
+            union_count = annotation_data_.sum() + prediction_data_.sum()
             if union_count > 0:
                 result[c] += 2.0*intersection_count / union_count
-
-        annotation_data_ = (annotation_data > 0)
-        prediction_data_ = (prediction_data > 0)
-
-        intersection_count = np.logical_and(annotation_data_, prediction_data_).sum()
-        union_count = annotation_data_.sum() + prediction_data_.sum()
-        if union_count > 0:
-            result[0] += 2.0 * intersection_count / union_count
 
         self.overall_metric.append(result)
 
