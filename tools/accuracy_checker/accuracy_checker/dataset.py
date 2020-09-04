@@ -229,6 +229,7 @@ class Dataset:
         if add_pairs:
             subsample_set |= pairs_set
 
+        warnings.warn('Subset: \n{}'.format('\n'.join([str(self.annotation[i].identifier) for i in subsample_set])))
         return list(subsample_set)
 
     def set_annotation_metadata(self, annotation, image, data_source):
