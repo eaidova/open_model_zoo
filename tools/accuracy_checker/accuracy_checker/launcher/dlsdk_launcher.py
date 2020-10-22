@@ -153,6 +153,7 @@ class DLSDKLauncher(Launcher):
         self._use_set_blob = False
         self._output_layouts = dict()
         self.preprocessor = preprocessor
+        self.default_layout = 'NHWC'
 
         if not delayed_model_loading:
             if dlsdk_launcher_config.need_conversion:
@@ -575,7 +576,7 @@ class DLSDKLauncher(Launcher):
             filled_part = [data[-1]] * diff_number
             data = np.concatenate([data, filled_part])
         precision = self.inputs[input_blob].precision
-        data = data.astype(PRECISION_TO_DTYPE[precision])
+        data = data.astype(np.float16)
         data_layout = DIM_IDS_TO_LAYOUT.get(tuple(data_layout))
         input_layout = self.inputs[input_blob].layout
         layout_mismatch = (
@@ -926,11 +927,13 @@ class DLSDKLauncher(Launcher):
         for name, input_info in network_inputs.items():
             print_info('\tLayer name: {}'.format(name))
             print_info('\tprecision: {}'.format(input_info.precision))
-            print_info('\tshape {}\n'.format(input_info.shape))
+            print_info(('\tlayout: {}').format(input_info.layout))
+            print_info('\tshape: {}\n'.format(input_info.shape))
         print_info('Output info')
         for name, output_info in network_outputs.items():
             print_info('\tLayer name: {}'.format(name))
             print_info('\tprecision: {}'.format(output_info.precision))
+            print_info('\tlayout: {}'.format(output_info.layout))
             print_info('\tshape: {}\n'.format(output_info.shape))
             self._output_layouts[name] = output_info.layout
 
