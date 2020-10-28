@@ -576,7 +576,7 @@ class DLSDKLauncher(Launcher):
             filled_part = [data[-1]] * diff_number
             data = np.concatenate([data, filled_part])
         precision = self.inputs[input_blob].precision
-        data = data.astype(np.float16)
+        data = data.astype(np.float32)
         data_layout = DIM_IDS_TO_LAYOUT.get(tuple(data_layout))
         input_layout = self.inputs[input_blob].layout
         layout_mismatch = (
